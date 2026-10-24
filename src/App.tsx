@@ -40,7 +40,7 @@ function AnimatedCounter({ end, duration = 1800, suffix = "" }: { end: number; d
           requestAnimationFrame(animate);
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.1, rootMargin: '120px' }
     );
 
     observer.observe(node);
@@ -243,6 +243,17 @@ export default function App() {
   // Mobile navigation state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Mobile slow carousel pause state for hero growing stats
+  const [isStatsCarouselPaused, setIsStatsCarouselPaused] = useState(false);
+
+  // Growing statistics numbers data displayed under hero section
+  const statsData = [
+    { end: 20, suffix: "+", label: "Años de Experiencia" },
+    { end: 500, suffix: "+", label: "Casos Resueltos" },
+    { end: 98, suffix: "%", label: "Éxito en Tribunales" },
+    { end: 15, suffix: "", label: "Abogados Especialistas" },
+  ];
+
   // Active FAQ accordion state
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
 
@@ -340,6 +351,51 @@ export default function App() {
       setActiveLogoIndex((prev) => (prev + 1) % qualityLogos.length);
     }, 4500);
     return () => clearInterval(interval);
+  }, []);
+
+  // Suppress third-party floating chat widget on mobile screens (< 768px) to keep bottom navigation bar clean
+  useEffect(() => {
+    const handleChatWidgetResponsiveVisibility = () => {
+      const isMobile = window.innerWidth < 768;
+      const selectors = [
+        'chat-widget',
+        '#chat-widget-container',
+        '#chat-widget',
+        '[id*="chat-widget"]',
+        '[class*="chat-widget"]',
+        '.lc_text-widget',
+        '.lc_text-widget--btn',
+        'div[id*="leadconnector"]',
+        'iframe[src*="leadconnectorhq"]',
+        'iframe[src*="leadconnector"]',
+        'iframe[id*="chat-widget"]'
+      ];
+      const elements = document.querySelectorAll<HTMLElement>(selectors.join(','));
+      elements.forEach((el) => {
+        if (isMobile) {
+          el.style.setProperty('display', 'none', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+          el.style.setProperty('pointer-events', 'none', 'important');
+        } else {
+          el.style.removeProperty('display');
+          el.style.removeProperty('visibility');
+          el.style.removeProperty('pointer-events');
+        }
+      });
+    };
+
+    handleChatWidgetResponsiveVisibility();
+    window.addEventListener('resize', handleChatWidgetResponsiveVisibility);
+
+    const observer = new MutationObserver(() => {
+      handleChatWidgetResponsiveVisibility();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      window.removeEventListener('resize', handleChatWidgetResponsiveVisibility);
+      observer.disconnect();
+    };
   }, []);
 
   // Smooth scroll helper
@@ -505,7 +561,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-900 bg-slate-50 text-slate-800 font-sans">
+    <div className="min-h-screen flex flex-col pb-20 md:pb-0 selection:bg-amber-500 selection:text-slate-900 bg-slate-50 text-slate-800 font-sans">
       
       {/* HEADER SECTION */}
       <header className="sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 shadow-md backdrop-blur-md bg-opacity-95">
@@ -568,58 +624,128 @@ export default function App() {
           </div>
         </div>
 
-        {/* Mobile Navigation Menu Dropdown */}
+        {/* Mobile Navigation Menu Dropdown with slow 2-brand-color animation (#131921 & #ff9900) */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-slate-900 border-t border-slate-800 px-4 pt-2 pb-6 space-y-3 transition-all duration-300">
-            <button 
-              onClick={() => scrollToSection('inicio')} 
-              className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-all font-medium"
-            >
-              Inicio
-            </button>
-            <button 
-              onClick={() => scrollToSection('nosotros')} 
-              className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-all font-medium"
-            >
-              Nosotros
-            </button>
-            <button 
-              onClick={() => scrollToSection('especialidades')} 
-              className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-all font-medium"
-            >
-              Especialidades
-            </button>
-            <button 
-              onClick={() => scrollToSection('faqs')} 
-              className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-all font-medium"
-            >
-              Preguntas Frecuentes
-            </button>
-            <button 
-              onClick={() => scrollToSection('contacto')} 
-              className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-all font-medium"
-            >
-              Contacto
-            </button>
-            <div className="pt-4 px-3">
-              <button 
-                onClick={() => { setIsModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="w-full bg-amber-500 text-slate-950 py-3 rounded-lg text-center font-bold shadow-md flex items-center justify-center space-x-2"
-              >
-                <i className="fa-regular fa-calendar-check"></i>
-                <span>Solicitar Cita Gratuita</span>
-              </button>
+          <div className="md:hidden border-t border-amber-500/30 px-4 pt-2.5 pb-6 max-h-[calc(100vh-5rem)] overflow-y-auto shadow-2xl relative menu-bg-aurora">
+            <div className="relative z-10 space-y-2">
+              {/* Site Links */}
+              <div className="space-y-1">
+                <button 
+                  onClick={() => scrollToSection('inicio')} 
+                  className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-all font-medium text-sm"
+                >
+                  Inicio
+                </button>
+                <button 
+                  onClick={() => scrollToSection('nosotros')} 
+                  className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-all font-medium text-sm"
+                >
+                  Nosotros
+                </button>
+                <button 
+                  onClick={() => scrollToSection('especialidades')} 
+                  className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-all font-medium text-sm"
+                >
+                  Especialidades
+                </button>
+                <button 
+                  onClick={() => scrollToSection('faqs')} 
+                  className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-all font-medium text-sm"
+                >
+                  Preguntas Frecuentes
+                </button>
+                <button 
+                  onClick={() => scrollToSection('contacto')} 
+                  className="block w-full text-left py-2.5 px-3 rounded-lg text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-all font-medium text-sm"
+                >
+                  Contacto
+                </button>
+              </div>
+
+              {/* Direct Contact Links (Call & Mailto) */}
+              <div className="pt-2 border-t border-amber-500/20 space-y-1">
+                {/* Phone call link */}
+                <a 
+                  href="tel:+34604065849"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center space-x-3 py-2 px-3 text-amber-500 hover:text-amber-400 transition-colors group"
+                  aria-label="Llamar al +34 604 065 849"
+                >
+                  <i className="fa-solid fa-phone text-amber-500 text-base shrink-0 group-hover:scale-110 transition-transform"></i>
+                  <span className="text-sm font-semibold tracking-tight">
+                    +34 604 065 849
+                  </span>
+                </a>
+
+                {/* Email mailto link */}
+                <a 
+                  href="mailto:info@websparaabogados.com"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center space-x-3 py-2 px-3 text-amber-500 hover:text-amber-400 transition-colors group"
+                  aria-label="Enviar correo a info@websparaabogados.com"
+                >
+                  <i className="fa-solid fa-envelope text-amber-500 text-base shrink-0 group-hover:scale-110 transition-transform"></i>
+                  <span className="text-sm font-semibold truncate">
+                    info@websparaabogados.com
+                  </span>
+                </a>
+              </div>
+
+              {/* CTA Button */}
+              <div className="pt-2 px-1">
+                <button 
+                  onClick={() => { setIsModalOpen(true); setIsMobileMenuOpen(false); }}
+                  className="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 py-3 rounded-xl text-center font-bold shadow-md flex items-center justify-center space-x-2 transition-all"
+                >
+                  <i className="fa-regular fa-calendar-check"></i>
+                  <span>Solicitar Cita Gratuita</span>
+                </button>
+              </div>
+
+              {/* Redes Sociales / Social Networks Links */}
+              <div className="flex items-center justify-center space-x-7 pt-3 pb-2">
+                <a 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); }}
+                  className="text-amber-500 hover:text-amber-400 text-xl transition-all hover:scale-110 active:scale-95"
+                  aria-label="Instagram"
+                  title="Instagram"
+                >
+                  <i className="fa-brands fa-instagram"></i>
+                </a>
+                <a 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); }}
+                  className="text-amber-500 hover:text-amber-400 text-xl transition-all hover:scale-110 active:scale-95"
+                  aria-label="Facebook"
+                  title="Facebook"
+                >
+                  <i className="fa-brands fa-facebook-f"></i>
+                </a>
+                <a 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); }}
+                  className="text-amber-500 hover:text-amber-400 text-xl transition-all hover:scale-110 active:scale-95"
+                  aria-label="Google My Business"
+                  title="Google My Business"
+                >
+                  <i className="fa-brands fa-google"></i>
+                </a>
+              </div>
             </div>
           </div>
         )}
       </header>
 
       {/* HERO SECTION */}
-      <section id="inicio" className="relative bg-slate-950 text-white pt-10 pb-20 md:py-24 lg:py-32 overflow-hidden">
-        {/* Abstract background graphics with opacity overlay */}
-        <div className="absolute inset-0 z-0 opacity-15">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600 rounded-full blur-3xl"></div>
+      <section id="inicio" className="relative text-white pt-10 pb-20 md:py-24 lg:py-32 overflow-hidden">
+        {/* Animated Background: Dominant dark blue canvas with subtle amber drifting from bottom-right to top-left */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none hero-ambient-canvas" aria-hidden="true">
+          <div className="hero-blue-deep-aura" />
+          <div className="hero-blue-drift" />
+          <div className="hero-amber-drift-orb" />
+          <div className="hero-amber-drift-trail" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 pointer-events-none" />
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -718,47 +844,68 @@ export default function App() {
         </div>
       </section>
 
-      {/* STATS COUNTER BAR */}
-      <section className="bg-amber-500 text-slate-950 relative z-10 py-8 shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-4 text-center divide-y-2 divide-transparent md:divide-y-0 md:divide-x md:divide-slate-950/10">
-            
-            <div className="flex flex-col justify-center py-2">
-              <span className="font-serif text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight">
-                <AnimatedCounter end={20} suffix="+" />
-              </span>
-              <span className="text-xs sm:text-sm uppercase tracking-wider font-bold text-slate-900 mt-1">
-                Años de Experiencia
-              </span>
-            </div>
+      {/* STATS COUNTER BAR (Desktop multi-column grid & Mobile continuous slow carousel) */}
+      <section className="bg-amber-500 text-slate-950 relative z-10 py-6 md:py-8 shadow-xl overflow-hidden">
+        {/* Desktop Layout (md and up: clean 4-column responsive grid) */}
+        <div className="hidden md:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-4 gap-y-8 gap-x-4 text-center divide-x divide-slate-950/10">
+            {statsData.map((stat, idx) => (
+              <div key={idx} className="flex flex-col justify-center py-2">
+                <span className="font-serif text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight">
+                  <AnimatedCounter end={stat.end} suffix={stat.suffix} />
+                </span>
+                <span className="text-xs sm:text-sm uppercase tracking-wider font-bold text-slate-900 mt-1">
+                  {stat.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            <div className="flex flex-col justify-center py-2">
-              <span className="font-serif text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight">
-                <AnimatedCounter end={500} suffix="+" />
-              </span>
-              <span className="text-xs sm:text-sm uppercase tracking-wider font-bold text-slate-900 mt-1">
-                Casos Resueltos
-              </span>
-            </div>
+        {/* Mobile Layout (< md: continuous very slow carousel) */}
+        <div className="block md:hidden relative w-full overflow-hidden">
+          {/* Subtle edge fades to blend smoothly into amber bar */}
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-r from-amber-500 to-transparent z-10" />
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-amber-500 to-transparent z-10" />
 
-            <div className="flex flex-col justify-center py-2 border-t border-slate-950/10 md:border-t-0">
-              <span className="font-serif text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight">
-                <AnimatedCounter end={98} suffix="%" />
-              </span>
-              <span className="text-xs sm:text-sm uppercase tracking-wider font-bold text-slate-900 mt-1">
-                Éxito en Tribunales
-              </span>
-            </div>
+          {/* Carousel Track with pause-on-touch/hover */}
+          <div 
+            className="animate-stats-carousel-slow flex items-center select-none py-1"
+            style={{ animationPlayState: isStatsCarouselPaused ? 'paused' : 'running' }}
+            onTouchStart={() => setIsStatsCarouselPaused(true)}
+            onTouchEnd={() => setIsStatsCarouselPaused(false)}
+            onMouseEnter={() => setIsStatsCarouselPaused(true)}
+            onMouseLeave={() => setIsStatsCarouselPaused(false)}
+          >
+            {/* First Set of Stats */}
+            {statsData.map((stat, idx) => (
+              <div key={`stat-a-${idx}`} className="flex items-center shrink-0">
+                <div className="flex flex-col items-center justify-center py-1.5 px-6 sm:px-8 min-w-[210px] text-center">
+                  <span className="font-serif text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+                    <AnimatedCounter end={stat.end} suffix={stat.suffix} />
+                  </span>
+                  <span className="text-xs uppercase tracking-wider font-bold text-slate-900 mt-1 whitespace-nowrap">
+                    {stat.label}
+                  </span>
+                </div>
+                <div className="h-7 w-px bg-slate-950/20 shrink-0 self-center" aria-hidden="true" />
+              </div>
+            ))}
 
-            <div className="flex flex-col justify-center py-2 border-t border-slate-950/10 md:border-t-0">
-              <span className="font-serif text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight">
-                <AnimatedCounter end={15} />
-              </span>
-              <span className="text-xs sm:text-sm uppercase tracking-wider font-bold text-slate-900 mt-1">
-                Abogados Especialistas
-              </span>
-            </div>
-
+            {/* Second Set of Stats for 100% Seamless Infinite Loop */}
+            {statsData.map((stat, idx) => (
+              <div key={`stat-b-${idx}`} className="flex items-center shrink-0">
+                <div className="flex flex-col items-center justify-center py-1.5 px-6 sm:px-8 min-w-[210px] text-center">
+                  <span className="font-serif text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+                    <AnimatedCounter end={stat.end} suffix={stat.suffix} />
+                  </span>
+                  <span className="text-xs uppercase tracking-wider font-bold text-slate-900 mt-1 whitespace-nowrap">
+                    {stat.label}
+                  </span>
+                </div>
+                <div className="h-7 w-px bg-slate-950/20 shrink-0 self-center" aria-hidden="true" />
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -2076,8 +2223,8 @@ export default function App() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-slate-950 text-slate-400 py-12 md:py-16 border-t border-slate-900">
+      {/* FOOTER (Hidden on mobile per user specification) */}
+      <footer className="hidden md:block bg-slate-950 text-slate-400 py-12 md:py-16 border-t border-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 pb-12 border-b border-slate-900">
             
@@ -2311,6 +2458,75 @@ export default function App() {
         </div>
       )}
 
+      {/* MOBILE BOTTOM NAVIGATION BAR (Fixed on mobile with 5 buttons, prominent glowing WhatsApp in the middle) */}
+      <nav 
+        aria-label="Navegación móvil inferior"
+        className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-slate-950/95 backdrop-blur-lg border-t border-slate-800 shadow-[0_-8px_30px_rgba(0,0,0,0.6)] pb-[max(0.4rem,env(safe-area-inset-bottom,0px))]"
+      >
+        <div className="max-w-md mx-auto grid grid-cols-5 items-end px-2 pt-1.5 pb-1">
+          {/* 1. Inicio */}
+          <button
+            type="button"
+            onClick={() => scrollToSection('inicio')}
+            className="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all focus:outline-none"
+          >
+            <i className="fa-solid fa-house text-base"></i>
+            <span className="text-[10px] font-semibold tracking-tight mt-1">Inicio</span>
+          </button>
+
+          {/* 2. Áreas de Práctica */}
+          <button
+            type="button"
+            onClick={() => scrollToSection('especialidades')}
+            className="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all focus:outline-none"
+          >
+            <i className="fa-solid fa-scale-balanced text-base"></i>
+            <span className="text-[10px] font-semibold tracking-tight mt-1">Áreas</span>
+          </button>
+
+          {/* 3. WhatsApp (Elevated, larger, constant radiant glowing effect) */}
+          <div className="flex items-center justify-center -mt-6 mb-1 relative">
+            <a
+              href="https://wa.me/34604065849?text=estuve%20viendo%20la%20pagina%20web%20demo%20y%20Tengo%20algunas%20preguntas"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Enviar WhatsApp a Aboga2"
+              title="WhatsApp"
+              className="relative flex items-center justify-center group"
+            >
+              {/* Constant pulsating halo aura */}
+              <span className="absolute -inset-1.5 rounded-full bg-[#25D366] opacity-75 whatsapp-halo-ring pointer-events-none"></span>
+
+              {/* Central glowing circular button */}
+              <span className="relative w-14 h-14 rounded-full bg-gradient-to-tr from-[#128C7E] via-[#25D366] to-[#4eed82] text-white flex items-center justify-center shadow-xl whatsapp-glow-btn border-2 border-white/50 active:scale-90 transition-transform">
+                <i className="fa-brands fa-whatsapp text-3xl drop-shadow-md"></i>
+              </span>
+            </a>
+          </div>
+
+          {/* 4. Test / Diagnóstico */}
+          <button
+            type="button"
+            onClick={() => scrollToSection('evaluador')}
+            className="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all focus:outline-none"
+          >
+            <i className="fa-solid fa-clipboard-check text-base"></i>
+            <span className="text-[10px] font-semibold tracking-tight mt-1">Test Legal</span>
+          </button>
+
+          {/* 5. Cita */}
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-amber-400 active:scale-95 transition-all focus:outline-none"
+          >
+            <i className="fa-regular fa-calendar-check text-base"></i>
+            <span className="text-[10px] font-semibold tracking-tight mt-1">Pedir Cita</span>
+          </button>
+        </div>
+      </nav>
+
     </div>
   );
 }
+
