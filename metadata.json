@@ -1,0 +1,6 @@
+{
+  "name": "Aboga2 - Bufete Jurídico",
+  "description": "Sitio web profesional y de alta conversión para el bufete de abogados Aboga2, diseñado con una estética jurídica elegante, áreas de especialidad, estadísticas de éxito, testimonios, preguntas frecuentes y formulario de contacto.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
