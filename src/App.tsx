@@ -739,13 +739,13 @@ export default function App() {
 
       {/* HERO SECTION */}
       <section id="inicio" className="relative text-white pt-10 pb-20 md:py-24 lg:py-32 overflow-hidden">
-        {/* Animated Background: Dominant dark blue canvas with subtle amber drifting from bottom-right to top-left */}
+        {/* Animated Background: Dominant dark blue canvas with warm glowing amber moving from bottom-right to top-left */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none hero-ambient-canvas" aria-hidden="true">
+          <div className="hero-diagonal-flow" />
           <div className="hero-blue-deep-aura" />
-          <div className="hero-blue-drift" />
           <div className="hero-amber-drift-orb" />
           <div className="hero-amber-drift-trail" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 pointer-events-none" />
+          <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-slate-950/50 to-transparent pointer-events-none" />
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -2019,17 +2019,26 @@ export default function App() {
                   </a>
 
                   {/* Dirección */}
-                  <div className="flex items-start space-x-4 p-1.5">
-                    <span className="w-10 h-10 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center text-md shrink-0">
+                  <a 
+                    href="https://maps.google.com/?q=Av.+Celanova+72,+Piso+3A,+32002+Ourense,+Spain"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start space-x-4 p-1.5 rounded-lg hover:bg-slate-800/50 transition-colors group cursor-pointer"
+                    title="Ver en Google Maps"
+                  >
+                    <span className="w-10 h-10 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center text-md shrink-0 group-hover:scale-105 transition-transform">
                       <i className="fa-solid fa-location-dot"></i>
                     </span>
                     <div>
-                      <span className="block text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Ubicación</span>
-                      <p className="text-xs text-slate-300 leading-relaxed">
+                      <span className="block text-[10px] text-slate-400 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                        Ubicación
+                        <i className="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-500 group-hover:text-amber-500 transition-colors"></i>
+                      </span>
+                      <p className="text-xs text-slate-300 leading-relaxed group-hover:text-amber-500 transition-colors">
                         Av. Celanova 72, Piso 3A, Ourense, España 32002
                       </p>
                     </div>
-                  </div>
+                  </a>
 
                 </div>
 
@@ -2188,6 +2197,94 @@ export default function App() {
 
             </div>
 
+          </div>
+
+          {/* Interactive Google Maps Preview of Ourense Office */}
+          <div className="mt-12 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+              <div>
+                <div className="flex items-center space-x-2 text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">
+                  <i className="fa-solid fa-map-location-dot"></i>
+                  <span>Ubicación Exacta en Ourense</span>
+                </div>
+                <h3 className="font-serif text-2xl font-bold text-slate-900 tracking-tight">
+                  Oficinas Centrales en Ourense
+                </h3>
+                <p className="text-slate-600 text-sm mt-1 flex items-center gap-1.5">
+                  <i className="fa-solid fa-location-dot text-rose-500"></i>
+                  <span>Av. Celanova 72, Piso 3A, 32002 Ourense, España</span>
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-3">
+                <a 
+                  href="https://www.google.com/maps/dir/?api=1&destination=Av.+Celanova+72,+32002+Ourense,+Spain"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer"
+                >
+                  <i className="fa-solid fa-diamond-turn-right"></i>
+                  <span>Cómo llegar</span>
+                </a>
+                <a 
+                  href="https://maps.google.com/?q=Av.+Celanova+72,+Piso+3A,+32002+Ourense,+Spain"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all"
+                >
+                  <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                  <span>Abrir en Google Maps</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Google Maps Interactive Container */}
+            <div className="relative mt-6 rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100 h-80 sm:h-96">
+              <iframe
+                title="Google Maps - Av. Celanova 72, Piso 3A, Ourense, España"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src="https://maps.google.com/maps?q=Av.+Celanova+72,+32002+Ourense,+Spain&t=&z=16&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-full"
+              ></iframe>
+
+              {/* Location badge overlay */}
+              <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md text-white px-4 py-2.5 rounded-xl border border-slate-700/60 shadow-lg hidden sm:flex items-center space-x-3 pointer-events-none">
+                <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-sm">
+                  <i className="fa-solid fa-building-user"></i>
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-white">Aboga2 &bull; Bufete Jurídico</span>
+                  <span className="block text-[11px] text-slate-300">Av. Celanova 72, Piso 3A &bull; Ourense</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Helpful arrival tips */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100 text-xs text-slate-600">
+              <div className="flex items-center space-x-3">
+                <span className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                  <i className="fa-solid fa-car"></i>
+                </span>
+                <span>Aparcamiento cercano y zona de carga/descarga</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                  <i className="fa-solid fa-bus"></i>
+                </span>
+                <span>Líneas de autobús con parada a menos de 100m</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                  <i className="fa-solid fa-elevator"></i>
+                </span>
+                <span>Acceso accesible con ascensor al Piso 3A</span>
+              </div>
+            </div>
           </div>
 
         </div>
